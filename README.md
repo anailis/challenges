@@ -1,6 +1,6 @@
 # 🎨 Makeover Monday & Tidy Tuesday Challenges
 
-I take part in Makeover Monday and Tidy Tuesday challenges to learn a datavis new skill.
+I take part in Makeover Monday and Tidy Tuesday challenges to learn a new datavis skill.
 
 |  Challenge  |  Skill Practised  |  Link to vis  | Path to code |
 |----|----|----|----|
