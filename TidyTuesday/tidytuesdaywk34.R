@@ -24,7 +24,7 @@ threat_world <- plants %>%
   pivot_longer(colnames(plants)[6:16], names_to = "threat", values_to = "proportion") %>%
   arrange(proportion)
 
-colorbars <- c(rep("grey", 5), "purple", "grey", "purple", rep("grey", 2), "orange")
+colorbars <- c(rep("grey", 4), "purple", "grey", "purple", "grey", "grey", "grey", "orange")
 
 ggplot(aes(y = reorder(threat, proportion), x = proportion, fill = colorbars), data = threat_world) +
   geom_col() + 
@@ -34,9 +34,9 @@ ggplot(aes(y = reorder(threat, proportion), x = proportion, fill = colorbars), d
        x = "Proportion of Extinct Plants Threatened By ________") +
   xlim(c(0, 0.5)) +
   scale_y_discrete(labels = rev(threats_key)) + 
-  scale_fill_manual(values = c("#725a8a", "grey", "#b04730"), guide = NULL) +
+  scale_fill_manual(values = c("grey", "#725a8a", "#b04730"), guide = NULL) +
   theme(plot.title = element_text(hjust = 0.7, vjust = -100, size = 31, family = "Arial", face = "bold"),
-        plot.subtitle = element_text(hjust = 0.8, vjust = -70, size = 45, colour = "#b04730", family = "Arial", face = "bold"),
+        plot.subtitle = element_text(hjust = 0.8, vjust = -70, size = 45, colour = "#725a8a", family = "Arial", face = "bold"),
         axis.title.x = element_text(angle = 0, family = "Arial", size = 15),
         axis.title.y = element_blank(),
         axis.text.y = element_text(size = 20),
