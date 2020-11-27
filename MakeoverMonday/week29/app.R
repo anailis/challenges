@@ -27,7 +27,9 @@ ui <- fluidPage(theme = shinytheme("superhero"),
     column(6,
            h4("Religion & Acceptance of Homosexuality"),
            p("Pew Research asked individuals whether or not they thought homosexuality should be accepted in society. Out of 34 countries polled, 25 showed significantly higher rates of acceptance of homosexuality in individuals who reported that religion was not very important to them compared to those who reported that religion was very important to them. This visualisation allows you to compare countries of interest, by either clicking the country names in the legend to add/remove them from the graph or filtering countries by the difference in opinion between respondants who thought religion was very important and those that did not.",
-             style = "font-size:13px;")
+             style = "font-size:13px;"),
+           p("Data source: https://www.pewresearch.org/global/2020/06/25/global-divide-on-homosexuality-persists/",
+             style = "font-size:10px")
     ),
     column(6,
       wellPanel(
