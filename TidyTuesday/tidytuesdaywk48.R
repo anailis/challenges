@@ -64,8 +64,11 @@ cotokens <- fcm(clean_tokens)
 
 loadfonts(device = "win")
 
-perc <- c(sum(hike_data_dummy$features_Good_for_kids), nrow(hike_data_dummy) - sum(hike_data_dummy$features_Good_for_kids))
-waffle(c(6,10), use_glyph = "child")
+# about 0.65 are not good for kids
+# and 0.35 are good for kids
+perc <- c(sum(hike_data_dummy$features_Good_for_kids)/nrow(hike_data_dummy), 
+          (nrow(hike_data_dummy) - sum(hike_data_dummy$features_Good_for_kids))/nrow(hike_data_dummy))
+waffle(c(35,65), use_glyph = "child", colors = c("#3C8F7D", "grey"))
 
 # top 30 words
 tokens_250 <- names(topfeatures(token_matrix, 250))
@@ -77,9 +80,9 @@ kids_matrix <- dfm(clean_tokens, groups = "features_Good_for_kids") %>%
   dfm_select(min_nchar = 2) %>% 
   dfm_trim(min_termfreq = 10) 
 
-#png("week48_wrdcld.png")
-wrdcld <- textplot_wordcloud(kids_matrix, comparison = TRUE, max_words = 50, color = c("#9CC1F8", "#3C8F7D"))
-#dev.off()
+png("week48_wrdcld.png")
+wrdcld <- textplot_wordcloud(kids_matrix, comparison = TRUE, max_words = 50, color = c("grey", "#3C8F7D"))
+dev.off()
 
 # 
 density <- ggplot(aes(x = highpoint, fill = as.factor(features_Good_for_kids)),
@@ -101,7 +104,7 @@ density <- ggplot(aes(x = highpoint, fill = as.factor(features_Good_for_kids)),
         panel.grid = element_blank()) +
   xlab("Highest Point (feet)") + 
   ylab("Number\nof Trails") +
-  scale_fill_manual(values = c("#9CC1F8", "#3C8F7D"),
+  scale_fill_manual(values = c("grey", "#3C8F7D"),
                     lab = c("Unsuitable for Children", "Suitable for Children"))
 
 ggsave('week48_density.png', density, units = "cm", width = 40, height = 20)
@@ -124,17 +127,4 @@ ggplot(aes(x = as.factor(features_Summits), fill = as.factor(features_Good_for_k
   scale_fill_manual(values = c("#bababa", "#575757"), name = "Trail Suitable\nfor Children?", 
                     lab = c("NO", "YES"))
 
-img <- readJPEG("images/8355.jpg")
-gimg <- rasterGrob(img, interpolate=TRUE)
 
-imgplt <- ggplot() +
-  annotation_custom(gimg, xmin=-Inf, xmax=Inf, ymin=-Inf, ymax=Inf)
-
-wrdcld <- readPNG("wordcloud.png")
-gwrdcld <- rasterGrob(wrdcld, interpolate=TRUE)
-
-wrdcldplt <- ggplot() +
-  annotation_custom(gwrdcld, xmin=-Inf, xmax=Inf, ymin=-Inf, ymax=Inf)
-
-
-ggarrange(density, imgplt, wrdcldplt, nrow = 2, ncol = 2)
