@@ -1,0 +1,121 @@
+---
+title: "tidytuesdaywk5"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r read_data, include=FALSE}
+library(here)
+library(tidyverse)
+library(tidytuesdayR)
+library(janitor)
+library(ggimage)
+library(ggpattern)
+
+breed_traits <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2022/2022-02-01/breed_traits.csv') %>%
+  clean_names()
+trait_description <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2022/2022-02-01/trait_description.csv')
+breed_rank_all <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2022/2022-02-01/breed_rank.csv') %>%
+  clean_names()
+```
+
+There are 195 breeds of dog in both the breed traits and rank table. 
+I want to join these tables together. 
+
+```{r}
+nrow(breed_traits)
+nrow(breed_rank_all)
+```
+
+However, there's a problem with the whitespace that means that the names of breeds do not match between tables. 
+
+```{r}
+gsub("\\s", "", breed_traits$breed[[1]])
+gsub("\\s", "", breed_rank_all$breed[[1]])
+
+# space is 160, non-breaking space,
+# rather than 32, regular space
+print(utf8ToInt(breed_traits$breed[[1]]))
+print(utf8ToInt(breed_rank_all$breed[[1]]))
+
+# let's change it to a regular space...
+breed_traits$breed <- gsub("\u00A0", " ", breed_traits$breed)
+```
+
+Now all but one of the breeds match between the two tables. This breed has an apostrophe instead of a space in one of the tables. I remove the apostrophe. 
+
+```{r}
+setdiff(breed_traits$breed, breed_rank_all$breed)
+
+breed_traits$breed[str_detect(breed_traits$breed, "Cirnechi")]
+breed_rank_all$breed[str_detect(breed_rank_all$breed, "Cirnechi")]
+
+breed_traits$breed <- gsub("’", " ", breed_traits$breed)
+
+setdiff(breed_traits$breed, breed_rank_all$breed)
+```
+
+Now the two tables can be joined using breed as a key. 
+For some reason the Plott hound doesn't have a valid coat type, so that record is dropped. 
+
+```{r}
+breeds <- breed_traits %>%
+  left_join(breed_rank_all, by = "breed") %>%
+  filter(breed != "Plott Hounds")
+nrow(breeds)
+head(breeds)
+```
+
+Next, for each coat type I identify the most commonly registered dog with that type of coat in 2020.
+This is to ideally provide an example dog that the viewer will be able to recognise. 
+
+```{r}
+examples <- breeds %>%
+  # get the dog people will be most familiar with
+  arrange(x2020_rank) %>%
+  group_by(coat_type) %>%
+  # first row will have the highest rated dog for that coat type
+  filter(row_number() == 1) %>%
+  select(breed, coat_type, image) %>%
+  mutate(texture = here("TidyTuesday", paste0(tolower(coat_type), "_coat.png")))
+examples
+```
+
+Next I create a simple bar chart demonstrating the numbers of AKC dog breeds with each coat type. 
+
+```{r}
+breeds %>%
+  filter(coat_type != "Plott Hounds") %>%
+  group_by(coat_type) %>%
+  summarise(count = n()) %>%
+  arrange(count) %>%
+  left_join(examples, by = "coat_type") %>%
+  ungroup() %>%
+ggplot(aes(x = count, y = fct_reorder(coat_type, count))) +
+  #geom_col(colour = "black", fill = "lightgrey") +
+  geom_col_pattern(
+    aes(pattern_filename = I(texture)),
+    pattern          = 'image', 
+    pattern_type     = 'expand',
+    colour           = 'black'
+  ) +
+  geom_text(aes(label = paste("e.g. ", breed), x = count + 10), hjust = 0, size = 2.5) +
+  geom_image(aes(y = seq(1, nrow(examples)), x = count + 5, 
+                 image = fct_reorder(image, count)),
+             size = 0.07, asp = 1.6) +
+  theme_classic() +
+  theme(axis.line.x = element_blank(),
+        axis.ticks.x = element_blank(),
+        panel.grid.major.x = element_line(size = 0.1, color = "lightgrey")) +
+  ggtitle("Frequency of Coat Types in AKC Dog Breeds") +
+  xlab("# of Breeds") + 
+  ylab("") +
+  xlim(0, 95)
+ggsave(here("TidyTuesday", "akc_coat_types.png"),
+       height = 3.7,
+       width = 5.9)
+```
