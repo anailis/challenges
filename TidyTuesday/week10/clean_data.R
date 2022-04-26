@@ -48,7 +48,10 @@ setdiff(country_codes, rep_country_codes)
 # fix UK and Greece in erasmus dataframe
 erasmus <- erasmus %>%
   mutate(across(contains("country_code"), ~ str_replace(., "UK", "GB"))) %>%
-  mutate(across(contains("country_code"), ~ str_replace(., "EL", "GR"))) 
+  mutate(across(contains("country_code"), ~ str_replace(., "EL", "GR")))
+
+country_codes <- unique(c(erasmus$sending_country_code, 
+                          erasmus$receiving_country_code))
 
 # fix Kosovo in the world dataframe
 world <- world %>%
@@ -57,35 +60,32 @@ world <- world %>%
 sum(world$erasmus)
 
 sent <- erasmus %>%
+  full_join(world %>% select(iso_a2, iso_a3), 
+            by = c("sending_country_code" = "iso_a2")) %>%
+  full_join(world %>% select(iso_a2, iso_a3), 
+            by = c("receiving_country_code" = "iso_a2"),
+            suffix = c(".sending", ".receiving")) 
+
+erasmus_iso_a3 <- world %>%
+  filter(erasmus) %>%
+  filter(!is.na(iso_a3)) %>%
+  pull(iso_a3)
+erasmus_iso_a3 <- c(erasmus_iso_a3, "XKX")
+length(erasmus_iso_a3)
+
+sent <- sent %>%
   # use .drop = FALSE and levels = country_codes to include combinations with no counts 
   # e.g. UK and Russia
-  mutate(across(contains("country_code"), ~ factor(., levels = country_codes))) %>%
-  group_by(sending_country_code, receiving_country_code, .drop = FALSE) %>%
+  mutate(across(contains("iso_a3"), ~ factor(., levels = unique(world$iso_a3)))) %>%
+  group_by(iso_a3.sending, iso_a3.receiving, .drop = FALSE) %>%
   summarise(total_participants = sum(participants), .groups = "keep") %>%
-  full_join(world %>% select(geometry, iso_a2), by = c("sending_country_code" = "iso_a2")) %>%
-  full_join(world %>% select(geometry, iso_a2), by = c("receiving_country_code" = "iso_a2"),
-            suffix = c(".sending", ".receiving"))
-
-# the basic plot when not being interacted with
-ggplot() +
-  geom_sf(aes(fill = erasmus), data = world) +
-  scale_fill_manual(values = c("#c2bfb8", "#d4a22f")) +
-  theme_bw() +
-  theme(
-    panel.border = element_blank(),
-    legend.position = "none"
+  ungroup() %>%
+  mutate(
+    total_participants = ifelse(iso_a3.receiving %in% erasmus_iso_a3 & iso_a3.sending %in% erasmus_iso_a3,
+                                total_participants,
+                                NA)
     )
 
-# what a plot would look like if user had clicked on UK
-ggplot() +
-  geom_sf(data = world) +
-  geom_sf(aes(geometry = geometry.receiving, fill = total_participants),
-          data = sent %>% filter(sending_country_code == "GB")) +
-  geom_sf(aes(geometry = geometry.sending), fill = "yellow",
-          data = sent %>% filter(sending_country_code == "GB")) +
-  theme_bw() +
-  theme(
-    panel.border = element_blank()
-  )
-
-write_csv(sent, "erasmus_exchanges.csv")
+sent %>%
+  select(iso_a3.sending, iso_a3.receiving, total_participants) %>%
+  write_csv("erasmus_exchanges.csv")
