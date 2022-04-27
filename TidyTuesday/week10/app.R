@@ -1,3 +1,4 @@
+library(htmltools)
 library(leaflet)
 library(rnaturalearth)
 library(rnaturalearthdata)
@@ -20,7 +21,6 @@ ui <- fluidPage(
   mainPanel(leafletOutput("map"))
   
 )
-
 
 server <- function(input, output, session) {
 
@@ -54,9 +54,15 @@ server <- function(input, output, session) {
       receiving_polygons$participants <- exchanges %>%
         filter(country_name.sending == click$id) %>%
         filter(country_name.receiving != click$id) %>%
-        select(country_name.receiving, total_participants) %>%
+        dplyr::select(country_name.receiving, total_participants) %>%
         right_join(countries, by = c("country_name.receiving" = "name")) %>%
         pull(total_participants)
+      receiving_polygons$labels <- paste(
+        receiving_polygons$name,
+        paste("Exchanged:",
+        receiving_polygons$participants),
+        sep = "<br>"
+      )
       
       pal <- colorNumeric(
         palette = "Blues",
@@ -69,6 +75,7 @@ server <- function(input, output, session) {
           fillColor = ~pal(receiving_polygons$participants),
           weight = 0.5,
           fillOpacity = 1,
+          label = lapply(receiving_polygons$labels, htmltools::HTML),
           highlightOptions = highlightOptions(
             color = "white", fillColor = "white",
             weight = 2, bringToFront = TRUE)
@@ -86,6 +93,7 @@ server <- function(input, output, session) {
 
 shinyApp(ui = ui, server = server)
 
-# tasks 
-# - highlight some countries in a different colour
-# - 
+# to-do:
+# - reset map button
+# - make it look pretty
+# - add a description of how to use the app
