@@ -4,6 +4,7 @@ I take part in Makeover Monday and Tidy Tuesday challenges to learn a new datavi
 
 |  Challenge  |  Skill Practised  |  Link to vis  | Link to blog post |
 |----|----|----|----|
+| Tidy Tuesday wk31 2022 | moveVis and geospatial visualisation | https://twitter.com/i/status/1554545817364664324 | https://eilidhfummey.me/tidytuesday-oregon-spotted-frogs/
 | Tidy Tuesday wk10 2022 | Shiny and geospatial visualisation | https://anailis.shinyapps.io/erasmus/ | https://eilidhfummey.me/tidytuesday-erasmus-destinations/
 | Tidy Tuesday wk5 2022 | ggimage and ggpattern | https://eilidhfummey.me/wp-content/uploads/2022/02/akc_coat_types-1536x963.png | https://eilidhfummey.me/tidy-tuesday-akc-dog-breed-characteristics/
 | Tidy Tuesday wk48 2020 | waffle and quantenda | https://eilidhfummey.me/wp-content/uploads/2020/12/week48-1536x1321.png | https://eilidhfummey.me/tidy-tuesday-family-friendly-trails-in-washington/
